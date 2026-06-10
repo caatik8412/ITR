@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITR Prep Portal — CA Atik Bhayani Associates</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --navy: #1a2744;
+  --blue: #2563eb;
+  --blue-light: #dbeafe;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --white: #ffffff;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-800); font-size: 14px; }
+
+/* ─── AUTH ─── */
+#auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--navy) 0%, #243b6e 100%); }
+.auth-box { background: white; border-radius: 12px; padding: 40px; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo .firm { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+.auth-logo h2 { font-size: 20px; color: var(--navy); font-weight: 700; }
+.role-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+.role-tab { flex: 1; padding: 8px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; font-weight: 600; background: white; color: var(--gray-600); transition: all 0.2s; }
+.role-tab.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--gray-800); transition: border-color 0.2s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--blue); color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success { background: var(--green); color: white; }
+.btn-success:hover { background: #15803d; }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-outline { background: white; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn-outline:hover { background: var(--blue-light); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── LAYOUT ─── */
+#app { display: none; min-height: 100vh; }
+.topbar { background: var(--navy); color: white; height: 52px; display: flex; align-items: center; padding: 0 20px; gap: 16px; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { font-size: 15px; font-weight: 700; }
+.topbar-firm { font-size: 11px; color: #94a3b8; }
+.topbar-spacer { flex: 1; }
+.topbar-user { font-size: 12px; color: #94a3b8; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-gray { background: var(--gray-100); color: var(--gray-600); }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+/* ─── DASHBOARD ─── */
+.page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.page-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: white; border-radius: 10px; padding: 16px 20px; border: 1px solid var(--border); }
+.stat-label { font-size: 11px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--navy); margin-top: 4px; }
+.search-bar { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; width: 280px; font-size: 14px; }
+.filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--gray-600); }
+.filter-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+
+/* ─── TABLE ─── */
+.table-wrap { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--gray-50); padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 12px 14px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+.client-name { font-weight: 600; color: var(--navy); }
+.client-pan { font-size: 11px; color: var(--gray-400); font-family: monospace; margin-top: 2px; }
+
+/* ─── MODAL ─── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 12px; width: 100%; max-width: 860px; margin: auto; }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--navy); flex: 1; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--gray-400); font-size: 20px; padding: 4px; }
+.modal-body { padding: 24px; max-height: 75vh; overflow-y: auto; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ─── ITR FORM TABS ─── */
+.itr-type-select { display: flex; gap: 8px; margin-bottom: 20px; }
+.itr-type-btn { padding: 8px 20px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; background: white; color: var(--gray-600); }
+.itr-type-btn.active { border-color: var(--navy); background: var(--navy); color: white; }
+.section-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 0; }
+.section-tab { padding: 8px 14px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--gray-400); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; white-space: nowrap; }
+.section-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.section-tab.filled { color: var(--green); }
+.section-tab.filled.active { color: var(--green); border-bottom-color: var(--green); }
+.section-content { display: none; }
+.section-content.active { display: block; }
+.section-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.field-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.field-full { grid-column: 1 / -1; }
+.field-label { font-size: 11px; font-weight: 600; color: var(--gray-600); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+.field-input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--gray-800); }
+.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+.field-hint { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+.sub-section { background: var(--gray-50); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.sub-section-title { font-size: 12px; font-weight: 700; color: var(--gray-700); margin-bottom: 12px; }
+.tds-row { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 10px; position: relative; }
+.add-row-btn { padding: 7px 14px; border: 1.5px dashed var(--blue); border-radius: 6px; background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; margin-top: 8px; }
+.remove-row { position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 16px; }
+.computed-field { background: var(--gray-50); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-weight: 600; color: var(--navy); }
+
+/* ─── REVIEW ─── */
+.review-header { background: var(--amber-light); border: 1px solid #fcd34d; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.comment-box { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; }
+.review-actions { display: flex; gap: 10px; margin-top: 12px; }
+
+/* ─── NOTIFICATION ─── */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-800); color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; z-index: 999; display: none; max-width: 320px; }
+.toast.show { display: block; animation: slideIn 0.3s ease; }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ─── LOADING ─── */
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 300; align-items: center; justify-content: center; }
+.loading-overlay.active { display: flex; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 640px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .field-grid { grid-template-columns: 1fr; }
+  .field-grid-3 { grid-template-columns: 1fr; }
+  .modal { margin: 0; border-radius: 0; min-height: 100vh; }
+}
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h2>📋 ITR Prep Portal</h2>
+      <div class="firm">CA Atik Bhayani Associates</div>
+    </div>
+    <div class="role-tabs">
+      <div class="role-tab active" onclick="setRole('staff')">👤 Staff Login</div>
+      <div class="role-tab" onclick="setRole('ca')">🎓 CA Login</div>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="Enter username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In</button>
+    <div id="login-error" style="color:var(--red);font-size:12px;margin-top:10px;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">ITR Prep Portal</div>
+      <div class="topbar-firm">CA Atik Bhayani Associates | AY 2026-27</div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user" id="topbar-user"></div>
+    <button class="btn btn-outline btn-sm" onclick="doLogout()" style="color:white;border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);">Logout</button>
+  </div>
+
+  <div class="container">
+    <!-- Dashboard -->
+    <div id="view-dashboard">
+      <div class="page-header">
+        <div style="flex:1">
+          <div class="page-title">ITR Preparation Dashboard</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-top:2px;">AY 2026-27 | FY 2025-26</div>
+        </div>
+        <button class="btn btn-primary" id="btn-new-itr" onclick="openNewITR()" style="display:none">+ New ITR</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Clients</div>
+          <div class="stat-value" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="stat-progress" style="color:var(--amber)">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Review</div>
+          <div class="stat-value" id="stat-review" style="color:var(--blue)">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Approved / Filed</div>
+          <div class="stat-value" id="stat-done" style="color:var(--green)">—</div>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <input class="search-bar" type="text" id="search-input" placeholder="🔍 Search client name or PAN..." oninput="renderTable()" />
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" data-filter="draft" onclick="setFilter('draft',this)">Draft</button>
+        <button class="filter-btn" data-filter="review" onclick="setFilter('review',this)">Pending Review</button>
+        <button class="filter-btn" data-filter="approved" onclick="setFilter('approved',this)">Approved</button>
+        <button class="filter-btn" data-filter="filed" onclick="setFilter('filed',this)">Filed</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>ITR Form</th>
+              <th>Assigned To</th>
+              <th>Total Income</th>
+              <th>Tax / Refund</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="itr-table-body">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-400)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ITR Entry Modal -->
+<div class="modal-overlay" id="modal-itr">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-itr-title">ITR Entry</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-top:2px;" id="modal-itr-subtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-itr')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- ITR Type selector (new only) -->
+      <div id="itr-type-selector" style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;">Select ITR Form</div>
+        <div class="itr-type-select">
+          <button class="itr-type-btn active" data-itr="ITR1" onclick="selectITRType('ITR1')">ITR-1 <div style="font-size:10px;font-weight:400">Salary / Sahaj</div></button>
+          <button class="itr-type-btn" data-itr="ITR2" onclick="selectITRType('ITR2')">ITR-2 <div style="font-size:10px;font-weight:400">Cap Gains / HUF</div></button>
+          <button class="itr-type-btn" data-itr="ITR4" onclick="selectITRType('ITR4')">ITR-4 <div style="font-size:10px;font-weight:400">Presumptive / Sugam</div></button>
+        </div>
+      </div>
+
+      <!-- Client selector (new only) -->
+      <div id="client-selector" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label>Select Client</label>
+          <select id="client-select" class="field-input" onchange="onClientSelect()">
+            <option value="">— Select Client —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dynamic Form Sections -->
+      <div id="itr-form-container"></div>
+
+      <!-- CA Review Panel (CA only) -->
+      <div id="ca-review-panel" style="display:none">
+        <div class="review-header">
+          <div style="font-size:18px">👁</div>
+          <div>
+            <div style="font-weight:700;font-size:13px">CA Review Mode</div>
+            <div style="font-size:12px;color:var(--gray-600)">Review the return and approve or return for correction</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Comments / Remarks</label>
+          <textarea class="comment-box" id="ca-comment" placeholder="Add review comments or corrections needed..."></textarea>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-danger" onclick="reviewAction('revision')">↩ Return for Revision</button>
+          <button class="btn btn-success" onclick="reviewAction('approved')">✓ Approve Return</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-itr')">Cancel</button>
+      <button class="btn btn-outline" id="btn-save-draft" onclick="saveITR('draft')">💾 Save Draft</button>
+      <button class="btn btn-primary" id="btn-submit-review" onclick="saveITR('review')">📤 Submit for Review</button>
+      <button class="btn btn-success" id="btn-export-json" onclick="exportJSON()" style="display:none">⬇ Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading"><div style="background:white;padding:24px 32px;border-radius:10px;font-weight:600;color:var(--navy)"><span class="spinner" style="border-top-color:var(--navy)"></span>Please wait...</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG — Replace with your Supabase credentials
+// ═══════════════════════════════════════════════════════════
+const SUPA_URL = 'YOUR_SUPABASE_URL';
+const SUPA_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+// Demo mode if no Supabase configured
+const DEMO_MODE = (SUPA_URL === 'YOUR_SUPABASE_URL');
+
+// ═══════════════════════════════════════════════════════════
+// AUTH USERS (in demo mode — in prod, use Supabase Auth)
+// ═══════════════════════════════════════════════════════════
+const USERS = {
+  'atik': { password: 'ca2026', role: 'ca', name: 'CA Atik Bhayani' },
+  'rushiraj': { password: 'staff123', role: 'staff', name: 'Rushiraj' },
+  'sahil': { password: 'staff123', role: 'staff', name: 'Sahil' }
+};
+
+let currentUser = null;
+let currentRole = 'staff';
+let itrRecords = [];
+let currentRecord = null;
+let currentITRType = 'ITR1';
+let activeFilter = 'all';
+let supabase = null;
+
+// ═══════════════════════════════════════════════════════════
+// DEMO DATA
+// ═══════════════════════════════════════════════════════════
+const DEMO_CLIENTS = [
+  { id: 1, name: 'Rajesh Kumar Sharma', pan: 'ABCRS1234K', mobile: '9876543210' },
+  { id: 2, name: 'Sunita Pramod Joshi', pan: 'BCPSJ5678M', mobile: '9765432109' },
+  { id: 3, name: 'Vijay Dattatray Patil', pan: 'CDPVD2345N', mobile: '9654321098' },
+  { id: 4, name: 'Meena Suresh Kulkarni', pan: 'DEMSK3456P', mobile: '9543210987' },
+  { id: 5, name: 'Sanjay Ramchandra Bhosale', pan: 'EFRSB4567Q', mobile: '9432109876' },
+  { id: 6, name: 'Priya Mahesh Deshpande', pan: 'FGPMD5678R', mobile: '9321098765' },
+  { id: 7, name: 'Anil Baburao Waghmare', pan: 'GHAWB6789S', mobile: '9210987654' },
+  { id: 8, name: 'Kavita Dinesh Pawar', pan: 'HIKDP7890T', mobile: '9109876543' },
+];
+
+let DEMO_RECORDS = [
+  { id: 1, client_id: 1, client_name: 'Rajesh Kumar Sharma', pan: 'ABCRS1234K', itr_type: 'ITR1', status: 'review', assigned_to: 'Rushiraj', total_income: 850000, tax_payable: 45000, data: {}, created_at: new Date().toISOString() },
+  { id: 2, client_id: 2, client_name: 'Sunita Pramod Joshi', pan: 'BCPSJ5678M', itr_type: 'ITR4', status: 'draft', assigned_to: 'Sahil', total_income: 680000, tax_payable: -12000, data: {}, created_at: new Date().toISOString() },
+  { id: 3, client_id: 3, client_name: 'Vijay Dattatray Patil', pan: 'CDPVD2345N', itr_type: 'ITR4', status: 'approved', assigned_to: 'Rushiraj', total_income: 520000, tax_payable: 8500, data: {}, created_at: new Date().toISOString() },
+  { id: 4, client_id: 4, client_name: 'Meena Suresh Kulkarni', pan: 'DEMSK3456P', itr_type: 'ITR1', status: 'draft', assigned_to: 'Sahil', total_income: 0, tax_payable: 0, data: {}, created_at: new Date().toISOString() },
+];
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+function setRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && role==='staff') || (i===1 && role==='ca')));
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim().toLowerCase();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const u = USERS[user];
+  if (!u || u.password !== pass) { errEl.textContent = 'Invalid username or password'; return; }
+  if (u.role !== currentRole) { errEl.textContent = `This account is a ${u.role} account, not ${currentRole}`; return; }
+  currentUser = { username: user, ...u };
+  errEl.textContent = '';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('topbar-user').textContent = `${currentUser.name} (${currentUser.role === 'ca' ? 'CA' : 'Staff'})`;
+  if (currentRole === 'staff') document.getElementById('btn-new-itr').style.display = 'block';
+  loadDashboard();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function loadDashboard() {
+  itrRecords = [...DEMO_RECORDS];
+  if (currentRole === 'staff') {
+    itrRecords = itrRecords.filter(r => r.assigned_to === currentUser.name);
+  }
+  updateStats();
+  renderTable();
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = itrRecords.length;
+  document.getElementById('stat-progress').textContent = itrRecords.filter(r => r.status === 'draft').length;
+  document.getElementById('stat-review').textContent = itrRecords.filter(r => r.status === 'review').length;
+  document.getElementById('stat-done').textContent = itrRecords.filter(r => ['approved','filed'].includes(r.status)).length;
+}
+
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let rows = itrRecords.filter(r => {
+    const matchSearch = !q || r.client_name.toLowerCase().includes(q) || r.pan.toLowerCase().includes(q);
+    const matchFilter = activeFilter === 'all' || r.status === activeFilter;
+    return matchSearch && matchFilter;
+  });
+
+  const statusBadge = {
+    draft: '<span class="badge badge-amber">Draft</span>',
+    review: '<span class="badge badge-blue">Pending Review</span>',
+    approved: '<span class="badge badge-green">Approved</span>',
+    filed: '<span class="badge badge-green">Filed</span>',
+    revision: '<span class="badge badge-red">Needs Revision</span>'
+  };
+
+  const tbody = document.getElementById('itr-table-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-400)">No returns found</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const income = r.total_income ? '₹' + r.total_income.toLocaleString('en-IN') : '—';
+    const tax = r.tax_payable !== 0 ? (r.tax_payable < 0 ? '<span style="color:var(--green)">Refund ₹'+Math.abs(r.tax_payable).toLocaleString('en-IN')+'</span>' : '₹'+r.tax_payable.toLocaleString('en-IN')) : '—';
+    const canEdit = currentRole === 'ca' || ['draft','revision'].includes(r.status);
+    const canExport = currentRole === 'ca' && r.status === 'approved';
+    return `<tr>
+      <td><div class="client-name">${r.client_name}</div><div class="client-pan">${r.pan}</div></td>
+      <td><span class="badge badge-gray">${r.itr_type}</span></td>
+      <td>${r.assigned_to}</td>
+      <td>${income}</td>
+      <td>${tax}</td>
+      <td>${statusBadge[r.status] || r.status}</td>
+      <td style="white-space:nowrap">
+        ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="openEditITR(${r.id})">✏ ${currentRole === 'ca' ? 'Review' : 'Edit'}</button>` : `<button class="btn btn-sm" style="background:var(--gray-100);color:var(--gray-400)" onclick="openEditITR(${r.id})">View</button>`}
+        ${canExport ? `<button class="btn btn-success btn-sm" onclick="exportJSONById(${r.id})" style="margin-left:4px">⬇ JSON</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW ITR
+// ═══════════════════════════════════════════════════════════
+function openNewITR() {
+  currentRecord = null;
+  currentITRType = 'ITR1';
+  document.getElementById('modal-itr-title').textContent = 'New ITR Entry';
+  document.getElementById('modal-itr-subtitle').textContent = 'AY 2026-27';
+  document.getElementById('itr-type-selector').style.display = 'block';
+  document.getElementById('client-selector').style.display = 'block';
+  document.getElementById('ca-review-panel').style.display = 'none';
+  document.getElementById('btn-export-json').style.display = 'none';
+  document.getElementById('btn-submit-review').style.display = 'inline-block';
+  document.getElementById('btn-save-draft').style.display = 'inline-block';
+
+  // Populate client dropdown
+  const sel = document.getElementById('client-select');
+  sel.innerHTML = '<option value="">— Select Client —</option>' +
+    DEMO_CLIENTS.map(c => `<option value="${c.id}">${c.name} (${c.pan})</option>`).join('');
+
+  selectITRType('ITR1');
+  document.getElementById('modal-itr').classList.add('open');
+}
+
+function onClientSelect() {
+  // Could pre-fill personal info from client master
+}
+
+function openEditITR(id) {
+  const rec = DEMO_RECORDS.find(r => r.id === id);
+  if (!rec) return;
+  currentRecord = JSON.parse(JSON.stringify(rec));
+  currentITRType = rec.itr_type;
+
+  document.getElementById('modal-itr-title').textContent = rec.client_name;
+  document.getElementById('modal-itr-subtitle').textContent = `${rec.itr_type} | AY 2026-27 | ${rec.pan}`;
+  document.getElementById('itr-type-selector').style.display = 'none';
+  document.getElementById('client-selector').style.display = 'none';
+
+  const isCA = currentRole === 'ca';
+  const canEdit = !isCA || rec.status === 'review';
+
+  document.getElementById('ca-review-panel').style.display = isCA && rec.status === 'review' ? 'block' : 'none';
+  document.getElementById('btn-export-json').style.display = isCA && rec.status === 'approved' ? 'inline-block' : 'none';
+  document.getElementById('btn-submit-review').style.display = !isCA ? 'inline-block' : 'none';
+  document.getElementById('btn-save-draft').style.display = !isCA ? 'inline-block' : 'none';
+
+  renderITRForm(currentITRType, rec.data || {});
+  document.getElementById('modal-itr').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════════
+// ITR FORM RENDERER
+// ═══════════════════════════════════════════════════════════
+function selectITRType(type) {
+  currentITRType = type;
+  document.querySelectorAll('.itr-type-btn').forEach(b => b.classList.toggle('active', b.dataset.itr === type));
+  renderITRForm(type, currentRecord?.data || {});
+}
+
+function renderITRForm(type, data) {
+  const container = document.getElementById('itr-form-container');
+  let tabs, sections;
+
+  if (type === 'ITR1') {
+    tabs = ['Personal', 'Filing', 'Salary', 'House Property', 'Other Sources', 'Deductions', 'TDS & Tax', 'LTCG 112A', 'Verification'];
+    sections = [renderPersonalInfo, renderFilingStatus, renderSalaryITR1, renderHouseProperty, renderOtherSources, renderDeductionsVIA, renderTDSTax, renderLTCG112A, renderVerification];
+  } else if (type === 'ITR4') {
+    tabs = ['Personal', 'Filing', 'Business (44AD)', 'Business (44ADA)', 'Salary', 'House Property', 'Other Sources', 'Deductions', 'Financial Particulars', 'TDS & Tax', 'Verification'];
+    sections = [renderPersonalInfo, renderFilingStatus, renderBusiness44AD, renderBusiness44ADA, renderSalaryITR1, renderHouseProperty, renderOtherSources, renderDeductionsVIA, renderFinancialParticulars, renderTDSTax, renderVerification];
+  } else if (type === 'ITR2') {
+    tabs = ['Personal', 'Filing', 'Salary', 'House Property', 'Capital Gains', 'Other Sources', 'Deductions', 'TDS & Tax', 'Verification'];
+    sections = [renderPersonalInfo, renderFilingStatus, renderSalaryITR2, renderHouseProperty, renderCapGains, renderOtherSources, renderDeductionsVIA, renderTDSTax, renderVerification];
+  }
+
+  const tabsHTML = tabs.map((t, i) => `<div class="section-tab${i===0?' active':''}" data-idx="${i}" onclick="switchTab(${i})">${t}</div>`).join('');
+  const sectionsHTML = sections.map((fn, i) => `<div class="section-content${i===0?' active':''}" id="sec-${i}">${fn(data)}</div>`).join('');
+
+  container.innerHTML = `<div class="section-tabs">${tabsHTML}</div>${sectionsHTML}`;
+}
+
+function switchTab(idx) {
+  document.querySelectorAll('.section-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.section-content').forEach((s,i) => s.classList.toggle('active', i===idx));
+}
+
+// ─── SECTION RENDERERS ───
+
+function inp(id, label, val, type='text', hint='', placeholder='') {
+  const v = val || '';
+  return `<div>
+    <div class="field-label">${label}</div>
+    <input type="${type}" id="${id}" class="field-input" value="${v}" placeholder="${placeholder}" />
+    ${hint ? `<div class="field-hint">${hint}</div>` : ''}
+  </div>`;
+}
+function sel(id, label, val, options) {
+  const opts = options.map(o => `<option value="${o.v}" ${val===o.v?'selected':''}>${o.l}</option>`).join('');
+  return `<div><div class="field-label">${label}</div><select id="${id}" class="field-input"><option value="">— Select —</option>${opts}</select></div>`;
+}
+function numInp(id, label, val, hint='') {
+  return inp(id, label, val, 'number', hint, '0');
+}
+function ro(id, label, val) {
+  return `<div><div class="field-label">${label}</div><div class="computed-field" id="${id}">${val !== undefined && val !== '' ? '₹ ' + Number(val).toLocaleString('en-IN') : '—'}</div></div>`;
+}
+
+function renderPersonalInfo(d) {
+  const p = d.PersonalInfo || {};
+  const n = p.AssesseeName || {};
+  const a = p.Address || {};
+  return `<div class="section-title">Personal Information</div>
+  <div class="field-grid">
+    ${inp('pi_fname','First Name', n.FirstName)}
+    ${inp('pi_mname','Middle Name', n.MiddleName)}
+    ${inp('pi_lname','Last Name / Surname', n.SurNameOrOrgName)}
+    ${inp('pi_pan','PAN', p.PAN, 'text', 'e.g. ABCDE1234F')}
+    ${inp('pi_dob','Date of Birth', p.DOB, 'date')}
+    ${inp('pi_aadhaar','Aadhaar Number', p.AadhaarCardNo, 'text', '12 digit Aadhaar')}
+    ${sel('pi_employer','Employer Category', p.EmployerCategory, [
+      {v:'GOV',l:'Government'},{v:'PSU',l:'PSU'},{v:'PEN',l:'Pensioners'},
+      {v:'OTH',l:'Others'},{v:'NA',l:'Not Applicable'}
+    ])}
+    ${inp('pi_mobile','Mobile Number', a.MobileNo, 'tel')}
+    ${inp('pi_email','Email Address', a.EmailAddress, 'email')}
+  </div>
+  <div class="sub-section" style="margin-top:14px">
+    <div class="sub-section-title">Address</div>
+    <div class="field-grid">
+      ${inp('pi_flat','Flat / Door / Block No.', a.FlatDoorBlockNo)}
+      ${inp('pi_bldg','Building / Village', a.NameBuildingVillage)}
+      ${inp('pi_road','Road / Street', a.RoadOrStreet)}
+      ${inp('pi_area','Area / Locality', a.LocalityOrArea)}
+      ${inp('pi_city','Town / City', a.CityOrTownOrDistrict)}
+      ${inp('pi_state','State', a.StateCode)}
+      ${inp('pi_pin','PIN Code', a.PinCode)}
+    </div>
+  </div>`;
+}
+
+function renderFilingStatus(d) {
+  const f = d.FilingStatus || {};
+  return `<div class="section-title">Filing Status</div>
+  <div class="field-grid">
+    ${sel('fs_sec','Return Filed Under Section', f.ReturnFileSec, [
+      {v:'11',l:'139(1) — On or before due date'},
+      {v:'12',l:'139(4) — After due date (Belated)'},
+      {v:'17',l:'139(5) — Revised return'}
+    ])}
+    ${sel('fs_regime','Tax Regime', f.OptOutNewTaxRegime, [
+      {v:'N',l:'New Tax Regime (Default)'},
+      {v:'Y',l:'Old Tax Regime (Opt-out)'}
+    ])}
+    ${sel('fs_139','7th Proviso to Sec 139(1)', f.SeventhProvisio139, [
+      {v:'true',l:'Yes — Filing due to high-value transactions'},
+      {v:'false',l:'No'}
+    ])}
+    ${inp('fs_receipt','Original Receipt No (if Revised)', f.ReceiptNo)}
+  </div>
+  <div class="sub-section" style="margin-top:14px">
+    <div class="sub-section-title">Bank Account for Refund</div>
+    <div id="bank-accounts-container">
+      ${renderBankRow(d.BankAccountDtls?.AddtnlBankDetails?.[0] || {})}
+    </div>
+    <div class="add-row-btn" onclick="addBankRow()">+ Add Another Bank Account</div>
+  </div>`;
+}
+
+function renderBankRow(b) {
+  return `<div class="tds-row">
+    <div class="field-grid field-grid-3">
+      ${inp('bank_ifsc','IFSC Code', b.IFSCCode)}
+      ${inp('bank_acc','Account Number', b.BankAccountNo)}
+      ${sel('bank_type','Account Type', b.BankName, [
+        {v:'SB',l:'Savings'},{v:'CA',l:'Current'},{v:'OT',l:'Others'}
+      ])}
+    </div>
+  </div>`;
+}
+
+function addBankRow() {
+  document.getElementById('bank-accounts-container').insertAdjacentHTML('beforeend', renderBankRow({}));
+}
+
+function renderSalaryITR1(d) {
+  const inc = d.ITR1_IncomeDeductions || d.IncomeDeductions || {};
+  return `<div class="section-title">Income from Salary</div>
+  <div class="field-grid">
+    ${numInp('sal_gross','Gross Salary [u/s 17(1)]', inc.GrossSalary)}
+    ${numInp('sal_perq','Value of Perquisites [u/s 17(2)]', inc.PerquisitesValue)}
+    ${numInp('sal_profit','Profits in lieu of Salary [u/s 17(3)]', inc.ProfitsInSalary)}
+    ${numInp('sal_net','Net Salary', inc.NetSalary)}
+    ${numInp('sal_std','Standard Deduction u/s 16(ia)', inc.DeductionUs16ia, '₹75,000 for AY 2026-27')}
+    ${numInp('sal_ent','Entertainment Allowance u/s 16(ii)', inc.EntertainmentAlw16ii)}
+    ${numInp('sal_pt','Professional Tax u/s 16(iii)', inc.ProfessionalTaxUs16iii)}
+  </div>
+  <div class="sub-section" style="margin-top:14px">
+    <div class="sub-section-title">Allowances Exempt u/s 10</div>
+    <div class="field-grid">
+      ${numInp('hra','HRA u/s 10(13A)', inc.AllwncExemptUs10?.TotalAllwncExemptUs10)}
+      ${numInp('lta','LTA u/s 10(5)', '')}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">TDS on Salary (Schedule TDS1)</div>
+    <div id="tds-salary-container">
+      ${renderTDSSalaryRow(d.TDSonSalaries?.TDSonSalary?.[0] || {})}
+    </div>
+    <div class="add-row-btn" onclick="addTDSSalaryRow()">+ Add Employer</div>
+  </div>`;
+}
+
+function renderSalaryITR2(d) {
+  const s = d.ScheduleS?.Salaries?.[0] || {};
+  return `<div class="section-title">Schedule S — Salary Income</div>
+  <div id="salary-employers-container">
+    ${renderSalaryEmployerRow(s)}
+  </div>
+  <div class="add-row-btn" onclick="addSalaryEmployerRow()">+ Add Employer</div>`;
+}
+
+function renderSalaryEmployerRow(s) {
+  return `<div class="tds-row">
+    <div class="field-grid">
+      ${inp('s_employer','Employer Name', s.NameOfEmployer)}
+      ${inp('s_tan','Employer TAN', s.TANofEmployer)}
+      ${numInp('s_gross','Gross Salary', s.Salary)}
+      ${numInp('s_perq','Perquisites', s.ValueOfPerquisites)}
+      ${numInp('s_std','Standard Deduction u/s 16(ia)', s.DeductionUnderSection16ia)}
+      ${numInp('s_pt','Professional Tax u/s 16(iii)', s.ProfessionalTaxUs16iii)}
+    </div>
+  </div>`;
+}
+
+function addSalaryEmployerRow() {
+  document.getElementById('salary-employers-container').insertAdjacentHTML('beforeend', renderSalaryEmployerRow({}));
+}
+
+function renderTDSSalaryRow(t) {
+  return `<div class="tds-row">
+    <div class="field-grid field-grid-3">
+      ${inp('tds1_employer','Employer Name', t.EmployerOrDeductorOrCollectDetl?.TAN ? '' : '')}
+      ${inp('tds1_tan','TAN of Employer', t.EmployerOrDeductorOrCollectDetl?.TAN)}
+      ${numInp('tds1_tds','TDS Deducted (₹)', t.TotalTDSSal)}
+    </div>
+  </div>`;
+}
+
+function addTDSSalaryRow() {
+  document.getElementById('tds-salary-container').insertAdjacentHTML('beforeend', renderTDSSalaryRow({}));
+}
+
+function renderHouseProperty(d) {
+  const hp = (d.ITR1_IncomeDeductions || d.IncomeDeductions || {}).PropertyDetails?.[0] || {};
+  return `<div class="section-title">Income from House Property</div>
+  <div id="hp-container">
+    ${renderHPRow(hp)}
+  </div>
+  <div class="add-row-btn" onclick="addHPRow()">+ Add Property</div>`;
+}
+
+function renderHPRow(hp) {
+  return `<div class="tds-row">
+    <div class="field-grid">
+      ${sel('hp_type','Property Type', hp.TypeOfHP, [
+        {v:'SOP',l:'Self-Occupied'},{v:'LOP',l:'Let-Out'},{v:'DLOP',l:'Deemed Let-Out'}
+      ])}
+      ${numInp('hp_rent','Annual Rent Received', hp.Rentdetails?.AnnualRentReceived)}
+      ${numInp('hp_mvalue','Municipal Value', hp.Rentdetails?.MunicipalValue)}
+      ${numInp('hp_interest','Interest on Housing Loan', hp.AnnualValue)}
+      ${inp('hp_addr','Property Address', hp.AddressDetail?.LocalityOrArea)}
+    </div>
+  </div>`;
+}
+
+function addHPRow() {
+  document.getElementById('hp-container').insertAdjacentHTML('beforeend', renderHPRow({}));
+}
+
+function renderOtherSources(d) {
+  const inc = d.ITR1_IncomeDeductions || d.IncomeDeductions || {};
+  return `<div class="section-title">Income from Other Sources</div>
+  <div class="field-grid">
+    ${numInp('os_savings','Interest from Savings A/c', '')}
+    ${numInp('os_deposit','Interest from Deposits / FD', '')}
+    ${numInp('os_ipo','Interest from I-T Refund', '')}
+    ${numInp('os_family_pension','Family Pension', '')}
+    ${numInp('os_dividend','Dividends', '')}
+    ${numInp('os_others','Any Other Income from Other Sources', '')}
+    ${numInp('os_total','Total Income from Other Sources', inc.IncomeOthSrc, 'Auto-computed')}
+  </div>`;
+}
+
+function renderDeductionsVIA(d) {
+  const ud = (d.ITR1_IncomeDeductions || d.IncomeDeductions || {}).UsrDeductUndChapVIA || (d.ScheduleVIA?.UsrDeductUndChapVIA) || {};
+  return `<div class="section-title">Deductions — Chapter VI-A</div>
+  <div class="sub-section">
+    <div class="sub-section-title">Section 80C Family</div>
+    <div class="field-grid field-grid-3">
+      ${numInp('d80c','80C (LIC, PPF, ELSS, etc.)', ud.Section80C, 'Max ₹1,50,000')}
+      ${numInp('d80ccc','80CCC (Pension Fund)', ud.Section80CCC)}
+      ${numInp('d80ccd1b','80CCD(1B) (NPS — Self)', ud.Section80CCD1B, 'Max ₹50,000')}
+      ${numInp('d80ccd2','80CCD(2) (NPS — Employer)', ud.Section80CCDEmployer)}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">Health & Other Deductions</div>
+    <div class="field-grid field-grid-3">
+      ${numInp('d80d','80D (Health Insurance)', ud.Section80D, 'Self + Parents')}
+      ${numInp('d80dd','80DD (Dependent with Disability)', ud.Section80DD)}
+      ${numInp('d80ddb','80DDB (Medical Treatment)', '')}
+      ${numInp('d80e','80E (Education Loan Interest)', ud.Section80E)}
+      ${numInp('d80eea','80EEA (Home Loan Interest — Affordable)', ud.Section80EEA)}
+      ${numInp('d80eeb','80EEB (Electric Vehicle Loan)', ud.Section80EEB)}
+      ${numInp('d80g','80G (Donations)', ud.Section80G)}
+      ${numInp('d80gg','80GG (Rent — No HRA)', ud.Section80GG)}
+      ${numInp('d80tta','80TTA (Savings Interest)', ud.Section80TTA, 'Max ₹10,000')}
+      ${numInp('d80ttb','80TTB (Senior Citizen — Deposit Int.)', ud.Section80TTB, 'Max ₹50,000')}
+      ${numInp('d80u','80U (Self with Disability)', ud.Section80U)}
+      ${numInp('d_total','Total Deductions Chapter VI-A', ud.TotalChapVIADeductions)}
+    </div>
+  </div>`;
+}
+
+function renderBusiness44AD(d) {
+  const bp = d.ScheduleBP || {};
+  const ad = bp.PersumptiveInc44AD || {};
+  const nat = bp.NatOfBus44AD || [{}];
+  return `<div class="section-title">Schedule BP — Presumptive Income u/s 44AD</div>
+  <div class="sub-section">
+    <div class="sub-section-title">Nature of Business</div>
+    <div class="field-grid">
+      ${inp('nat44ad_name','Business Name', nat[0]?.NameOfBusiness)}
+      ${inp('nat44ad_code','Business Code', nat[0]?.CodeAD, 'text', 'e.g. 09022 for Retail')}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">Turnover & Income</div>
+    <div class="field-grid">
+      ${numInp('ad_turnover','Gross Total Turnover', ad.GrsTotalTrnOver)}
+      ${numInp('ad_bank','Turnover — Via Banking Channels', ad.GrsTrnOverBank)}
+      ${numInp('ad_cash','Turnover — In Cash', ad.GrsTotalTrnOverInCash)}
+      ${numInp('ad_inc6','Presumptive Income @ 6% (Digital receipts)', ad.PersumptiveInc44AD6Per)}
+      ${numInp('ad_inc8','Presumptive Income @ 8% (Cash receipts)', ad.PersumptiveInc44AD8Per)}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">GSTIN wise Turnover</div>
+    <div id="gstin-container">
+      ${renderGSTINRow({})}
+    </div>
+    <div class="add-row-btn" onclick="addGSTINRow()">+ Add GSTIN</div>
+  </div>`;
+}
+
+function renderGSTINRow(g) {
+  return `<div class="tds-row">
+    <div class="field-grid">
+      ${inp('gstin_no','GSTIN', g.GSTINNo, 'text', '15 digit GSTIN')}
+      ${numInp('gstin_amt','Turnover under this GSTIN', g.AmtTurnGrossRcptGSTIN)}
+    </div>
+    <button class="remove-row" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+
+function addGSTINRow() {
+  document.getElementById('gstin-container').insertAdjacentHTML('beforeend', renderGSTINRow({}));
+}
+
+function renderBusiness44ADA(d) {
+  const bp = d.ScheduleBP || {};
+  const ada = bp.PersumptiveInc44ADA || {};
+  return `<div class="section-title">Schedule BP — Presumptive Income u/s 44ADA (Professionals)</div>
+  <div class="sub-section">
+    <div class="sub-section-title">Gross Receipts & Income</div>
+    <div class="field-grid">
+      ${numInp('ada_receipt','Gross Receipts', ada.GrsReceipt)}
+      ${numInp('ada_bank','Receipts — Via Banking', ada.GrsTrnOverBank44ADA)}
+      ${numInp('ada_cash','Receipts — In Cash', ada.GrsTotalTrnOverInCash44ADA)}
+      ${numInp('ada_inc','Presumptive Income @ 50%', ada.TotPersumptiveInc44ADA, 'Min 50% of gross receipts')}
+    </div>
+  </div>`;
+}
+
+function renderCapGains(d) {
+  const cg = d.ScheduleCGFor23 || {};
+  return `<div class="section-title">Schedule CG — Capital Gains</div>
+  <div class="sub-section">
+    <div class="sub-section-title">Short Term Capital Gains (STCG)</div>
+    <div class="field-grid">
+      ${numInp('stcg_15','STCG taxable @ 20% (STT paid — Sec 111A)', '')}
+      ${numInp('stcg_app','STCG at applicable rates', '')}
+      ${numInp('stcg_total','Total STCG', '')}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">Long Term Capital Gains (LTCG)</div>
+    <div class="field-grid">
+      ${numInp('ltcg_112a','LTCG u/s 112A (Listed Equity — STT paid)', '')}
+      ${numInp('ltcg_other','Other LTCG u/s 112', '')}
+      ${numInp('ltcg_total','Total LTCG', '')}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">Schedule 112A — LTCG Details</div>
+    <div id="s112a-container">
+      ${renderS112ARow({})}
+    </div>
+    <div class="add-row-btn" onclick="addS112ARow()">+ Add Transaction</div>
+  </div>`;
+}
+
+function renderS112ARow(r) {
+  return `<div class="tds-row">
+    <div class="field-grid field-grid-3">
+      ${inp('s112a_isin','ISIN', r.ISINCode)}
+      ${inp('s112a_name','Scrip Name', r.NameOfShare)}
+      ${numInp('s112a_qty','Units Sold', r.NoOfSharesSold)}
+      ${numInp('s112a_sale','Sale Consideration', r.SalePrice)}
+      ${numInp('s112a_cost','Cost of Acquisition', r.CostOfAcquisition)}
+      ${numInp('s112a_ltcg','LTCG', r.CapitalGain)}
+    </div>
+    <button class="remove-row" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+
+function addS112ARow() {
+  document.getElementById('s112a-container').insertAdjacentHTML('beforeend', renderS112ARow({}));
+}
+
+function renderFinancialParticulars(d) {
+  const fp = d.ScheduleBP?.FinanclPartclrOfBusiness || {};
+  return `<div class="section-title">Financial Particulars of Business (Balance Sheet — as on 31 March 2026)</div>
+  <div class="field-grid">
+    <div style="grid-column:1/-1;font-weight:700;color:var(--navy);font-size:13px;margin-bottom:4px">LIABILITIES</div>
+    ${numInp('fp_capital','Proprietor / Own Capital', fp.PartnerMemberOwnCapital)}
+    ${numInp('fp_secured','Secured Loans', fp.SecuredLoans)}
+    ${numInp('fp_unsecured','Unsecured Loans', fp.UnSecuredLoans)}
+    ${numInp('fp_advances','Advances (received)', fp.Advances)}
+    ${numInp('fp_creditors','Sundry Creditors', fp.SundryCreditors)}
+    ${numInp('fp_othliab','Other Current Liabilities', fp.OthrCurrLiab)}
+    ${ro('fp_totliab','Total Liabilities', fp.TotCapLiabilities)}
+    <div style="grid-column:1/-1;font-weight:700;color:var(--navy);font-size:13px;margin-top:8px;margin-bottom:4px">ASSETS</div>
+    ${numInp('fp_fixed','Fixed Assets (WDV)', fp.FixedAssets)}
+    ${numInp('fp_inv','Investments', fp.Investments)}
+    ${numInp('fp_stock','Inventories / Closing Stock', fp.Inventories)}
+    ${numInp('fp_debtors','Sundry Debtors', fp.SundryDebtors)}
+    ${numInp('fp_bank','Balance with Banks', fp.BalWithBanks)}
+    ${numInp('fp_cash','Cash in Hand', fp.CashInHand)}
+    ${numInp('fp_loans','Loans & Advances (given)', fp.LoansAndAdvances)}
+    ${numInp('fp_other','Other Assets', fp.OtherAssets)}
+    ${ro('fp_totasset','Total Assets', fp.TotalAssets)}
+  </div>`;
+}
+
+function renderLTCG112A(d) {
+  const ltcg = d.LTCG112A || {};
+  return `<div class="section-title">LTCG u/s 112A — Listed Equity / Equity Mutual Funds</div>
+  <div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--blue)">
+    ℹ ITR-1 now allows LTCG up to ₹1,25,000 from listed equity (new for AY 2026-27). Exemption limit is ₹1,25,000 u/s 112A.
+  </div>
+  <div class="field-grid">
+    ${numInp('ltcg112a_sale','Total Sale Consideration', ltcg.TotSaleCnsdrn)}
+    ${numInp('ltcg112a_cost','Total Cost of Acquisition', ltcg.TotCstAcqisn)}
+    ${numInp('ltcg112a_gain','LTCG u/s 112A (max ₹1,25,000)', ltcg.LongCap112A)}
+  </div>`;
+}
+
+function renderTDSTax(d) {
+  const tp = (d.TaxPaid || {}).TaxesPaid || {};
+  return `<div class="section-title">Tax Details</div>
+  <div class="sub-section">
+    <div class="sub-section-title">Taxes Paid Summary</div>
+    <div class="field-grid field-grid-3">
+      ${numInp('tax_adv','Advance Tax Paid', tp.AdvanceTax)}
+      ${numInp('tax_tds','Total TDS (auto from TDS schedules)', tp.TDS)}
+      ${numInp('tax_tcs','TCS', tp.TCS)}
+      ${numInp('tax_sa','Self Assessment Tax', tp.SelfAssessmentTax)}
+      ${ro('tax_total','Total Taxes Paid', tp.TotalTaxesPaid)}
+    </div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">TDS on Other than Salary (Schedule TDS2)</div>
+    <div id="tds2-container">
+      ${renderTDS2Row(d.TDSonOthThanSals?.TDSonOthThanSal?.[0] || {})}
+    </div>
+    <div class="add-row-btn" onclick="addTDS2Row()">+ Add TDS Entry</div>
+  </div>
+  <div class="sub-section">
+    <div class="sub-section-title">Advance Tax & Self-Assessment Tax Payments</div>
+    <div id="adv-tax-container">
+      ${renderAdvTaxRow({})}
+    </div>
+    <div class="add-row-btn" onclick="addAdvTaxRow()">+ Add Payment</div>
+  </div>`;
+}
+
+function renderTDS2Row(t) {
+  const det = t.EmployerOrDeductorOrCollectDetl || {};
+  return `<div class="tds-row">
+    <div class="field-grid field-grid-3">
+      ${inp('tds2_name','Deductor Name', det.EmployerOrDeductorOrCollectorName)}
+      ${inp('tds2_tan','TAN / PAN of Deductor', det.TAN)}
+      ${numInp('tds2_income','Amount on which TDS deducted', t.AmtForTaxDeduct)}
+      ${numInp('tds2_tds','TDS Claimed this Year', t.ClaimOutOfTotTDSOnAmtPaidCredited)}
+    </div>
+    <button class="remove-row" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+
+function addTDS2Row() {
+  document.getElementById('tds2-container').insertAdjacentHTML('beforeend', renderTDS2Row({}));
+}
+
+function renderAdvTaxRow(r) {
+  return `<div class="tds-row">
+    <div class="field-grid field-grid-3">
+      ${inp('advtax_bsr','BSR Code', r.BSRCode)}
+      ${inp('advtax_date','Date of Payment', r.DateDep, 'date')}
+      ${numInp('advtax_challan','Challan Serial No.', r.SrlNoOfChaln)}
+      ${numInp('advtax_amt','Amount (₹)', r.Amt)}
+    </div>
+    <button class="remove-row" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+
+function addAdvTaxRow() {
+  document.getElementById('adv-tax-container').insertAdjacentHTML('beforeend', renderAdvTaxRow({}));
+}
+
+function renderVerification(d) {
+  const v = d.Verification || {};
+  const decl = v.Declaration || {};
+  return `<div class="section-title">Verification</div>
+  <div style="background:var(--amber-light);border:1px solid #fcd34d;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#92400e">
+    ⚠ These details will be included in the verification declaration of the ITR JSON.
+  </div>
+  <div class="field-grid">
+    ${inp('ver_name','Name of Verifier', decl.AssesseeVerName)}
+    ${inp('ver_father','Father\'s Name', decl.FatherName)}
+    ${inp('ver_pan','PAN of Verifier', decl.AssesseeVerPAN)}
+    ${sel('ver_capacity','Filed in Capacity of', v.Capacity, [{v:'S',l:'Self'},{v:'R',l:'Representative'}])}
+    ${inp('ver_place','Place', v.Place)}
+  </div>
+  <div class="sub-section" style="margin-top:14px">
+    <div class="sub-section-title">Tax Return Preparer Details</div>
+    <div class="field-grid">
+      ${inp('trp_id','TRP ID / CA M.No.', d.TaxReturnPreparer?.RepresentativeAsseseeNameAdd)}
+      ${inp('trp_name','Preparer Name', '')}
+    </div>
+  </div>`;
+}
+
+function addTDSSalaryRow() {
+  document.getElementById('tds-salary-container').insertAdjacentHTML('beforeend', renderTDSSalaryRow({}));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE ITR
+// ═══════════════════════════════════════════════════════════
+function collectFormData() {
+  const get = id => document.getElementById(id)?.value || '';
+  const getN = id => parseInt(document.getElementById(id)?.value) || 0;
+
+  const data = {};
+
+  // Personal Info
+  data.PersonalInfo = {
+    AssesseeName: { FirstName: get('pi_fname'), MiddleName: get('pi_mname'), SurNameOrOrgName: get('pi_lname') },
+    PAN: get('pi_pan').toUpperCase(),
+    DOB: get('pi_dob'),
+    AadhaarCardNo: get('pi_aadhaar'),
+    EmployerCategory: get('pi_employer'),
+    Address: {
+      FlatDoorBlockNo: get('pi_flat'), NameBuildingVillage: get('pi_bldg'),
+      RoadOrStreet: get('pi_road'), LocalityOrArea: get('pi_area'),
+      CityOrTownOrDistrict: get('pi_city'), StateCode: get('pi_state'),
+      PinCode: get('pi_pin'), MobileNo: get('pi_mobile'), EmailAddress: get('pi_email')
+    }
+  };
+
+  // Filing Status
+  data.FilingStatus = {
+    ReturnFileSec: parseInt(get('fs_sec')) || 11,
+    OptOutNewTaxRegime: get('fs_regime'),
+    SeventhProvisio139: get('fs_139') === 'true'
+  };
+
+  // Income based on form type
+  if (currentITRType === 'ITR1') {
+    data.ITR1_IncomeDeductions = {
+      GrossSalary: getN('sal_gross'),
+      PerquisitesValue: getN('sal_perq'),
+      ProfitsInSalary: getN('sal_profit'),
+      NetSalary: getN('sal_net'),
+      DeductionUs16ia: getN('sal_std'),
+      EntertainmentAlw16ii: getN('sal_ent'),
+      ProfessionalTaxUs16iii: getN('sal_pt'),
+      IncomeOthSrc: getN('os_total'),
+      UsrDeductUndChapVIA: collectDeductions()
+    };
+  } else if (currentITRType === 'ITR4') {
+    data.ScheduleBP = {
+      PersumptiveInc44AD: {
+        GrsTotalTrnOver: getN('ad_turnover'),
+        GrsTrnOverBank: getN('ad_bank'),
+        GrsTotalTrnOverInCash: getN('ad_cash'),
+        PersumptiveInc44AD6Per: getN('ad_inc6'),
+        PersumptiveInc44AD8Per: getN('ad_inc8'),
+        TotPersumptiveInc44AD: getN('ad_inc6') + getN('ad_inc8')
+      },
+      NatOfBus44AD: [{ NameOfBusiness: get('nat44ad_name'), CodeAD: get('nat44ad_code') }],
+      FinanclPartclrOfBusiness: {
+        PartnerMemberOwnCapital: getN('fp_capital'),
+        SecuredLoans: getN('fp_secured'),
+        UnSecuredLoans: getN('fp_unsecured'),
+        Advances: getN('fp_advances'),
+        SundryCreditors: getN('fp_creditors'),
+        OthrCurrLiab: getN('fp_othliab'),
+        FixedAssets: getN('fp_fixed'),
+        Investments: getN('fp_inv'),
+        Inventories: getN('fp_stock'),
+        SundryDebtors: getN('fp_debtors'),
+        BalWithBanks: getN('fp_bank'),
+        CashInHand: getN('fp_cash'),
+        LoansAndAdvances: getN('fp_loans'),
+        OtherAssets: getN('fp_other')
+      }
+    };
+    data.IncomeDeductions = {
+      IncomeFromBusinessProf: getN('ad_inc6') + getN('ad_inc8'),
+      IncomeOthSrc: getN('os_total'),
+      UsrDeductUndChapVIA: collectDeductions()
+    };
+  }
+
+  // Tax Paid
+  data.TaxPaid = {
+    TaxesPaid: {
+      AdvanceTax: getN('tax_adv'),
+      TDS: getN('tax_tds'),
+      TCS: getN('tax_tcs'),
+      SelfAssessmentTax: getN('tax_sa'),
+      TotalTaxesPaid: getN('tax_adv') + getN('tax_tds') + getN('tax_tcs') + getN('tax_sa')
+    }
+  };
+
+  // Verification
+  data.Verification = {
+    Declaration: { AssesseeVerName: get('ver_name'), FatherName: get('ver_father'), AssesseeVerPAN: get('ver_pan').toUpperCase() },
+    Capacity: get('ver_capacity') || 'S',
+    Place: get('ver_place')
+  };
+
+  return data;
+}
+
+function collectDeductions() {
+  const getN = id => parseInt(document.getElementById(id)?.value) || 0;
+  return {
+    Section80C: getN('d80c'), Section80CCC: getN('d80ccc'), Section80CCD1B: getN('d80ccd1b'),
+    Section80CCDEmployer: getN('d80ccd2'), Section80D: getN('d80d'), Section80DD: getN('d80dd'),
+    Section80E: getN('d80e'), Section80EEA: getN('d80eea'), Section80EEB: getN('d80eeb'),
+    Section80G: getN('d80g'), Section80GG: getN('d80gg'), Section80TTA: getN('d80tta'),
+    Section80TTB: getN('d80ttb'), Section80U: getN('d80u'),
+    TotalChapVIADeductions: getN('d80c')+getN('d80ccc')+getN('d80ccd1b')+getN('d80d')+getN('d80dd')+getN('d80e')+getN('d80eea')+getN('d80eeb')+getN('d80g')+getN('d80gg')+getN('d80tta')+getN('d80ttb')+getN('d80u')
+  };
+}
+
+async function saveITR(status) {
+  const data = collectFormData();
+  const clientId = document.getElementById('client-select')?.value;
+  const client = DEMO_CLIENTS.find(c => c.id == clientId);
+
+  if (!currentRecord && (!client)) {
+    showToast('Please select a client first', 'error'); return;
+  }
+
+  const rec = {
+    id: currentRecord?.id || Date.now(),
+    client_id: client?.id || currentRecord?.client_id,
+    client_name: client?.name || currentRecord?.client_name,
+    pan: data.PersonalInfo?.PAN || currentRecord?.pan || client?.pan,
+    itr_type: currentITRType,
+    status: status,
+    assigned_to: currentUser.name,
+    total_income: (data.ITR1_IncomeDeductions?.GrossSalary || data.IncomeDeductions?.IncomeFromBusinessProf || 0),
+    tax_payable: 0,
+    data: data,
+    created_at: currentRecord?.created_at || new Date().toISOString()
+  };
+
+  if (currentRecord) {
+    const idx = DEMO_RECORDS.findIndex(r => r.id === currentRecord.id);
+    if (idx >= 0) DEMO_RECORDS[idx] = rec;
+  } else {
+    DEMO_RECORDS.push(rec);
+  }
+
+  showToast(status === 'draft' ? '✓ Saved as draft' : '✓ Submitted for CA review', 'success');
+  closeModal('modal-itr');
+  loadDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CA REVIEW
+// ═══════════════════════════════════════════════════════════
+function reviewAction(action) {
+  if (!currentRecord) return;
+  const comment = document.getElementById('ca-comment').value;
+  const idx = DEMO_RECORDS.findIndex(r => r.id === currentRecord.id);
+  if (idx >= 0) {
+    DEMO_RECORDS[idx].status = action;
+    DEMO_RECORDS[idx].ca_comment = comment;
+  }
+  showToast(action === 'approved' ? '✓ Return Approved!' : '↩ Sent back for revision', action === 'approved' ? 'success' : '');
+  closeModal('modal-itr');
+  loadDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════
+// JSON EXPORT — Generates standard ITR JSON per govt schema
+// ═══════════════════════════════════════════════════════════
+function exportJSON() {
+  if (currentRecord) exportJSONById(currentRecord.id);
+}
+
+function exportJSONById(id) {
+  const rec = DEMO_RECORDS.find(r => r.id === id);
+  if (!rec) return;
+  const json = buildITRJSON(rec);
+  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${rec.pan}_${rec.itr_type}_AY2026-27.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ JSON exported — import into Winman', 'success');
+}
+
+function buildITRJSON(rec) {
+  const d = rec.data || {};
+  const today = new Date().toISOString().split('T')[0];
+
+  const creationInfo = {
+    SWVersionNo: "1.0",
+    SWCreatedBy: "SW00000001",
+    JSONCreatedBy: "SW00000001",
+    JSONCreationDate: today,
+    IntermediaryCity: "Pandharpur",
+    Digest: "-"
+  };
+
+  if (rec.itr_type === 'ITR1') {
+    return {
+      ITR: {
+        ITR1: {
+          CreationInfo: creationInfo,
+          Form_ITR1: { FormName: "ITR-1", Description: "For Individuals being a Resident (other than Not Ordinarily Resident) having Total Income upto Rs.50 lakh", AssessmentYear: "2026", SchemaVer: "Ver1.0", FormVer: "Ver1.0" },
+          PersonalInfo: d.PersonalInfo || {},
+          FilingStatus: d.FilingStatus || {},
+          ITR1_IncomeDeductions: d.ITR1_IncomeDeductions || {},
+          ITR1_TaxComputation: d.ITR1_TaxComputation || {},
+          TaxPaid: d.TaxPaid || {},
+          Refund: d.Refund || {},
+          Schedule80D: d.Schedule80D || {},
+          Schedule80G: d.Schedule80G || {},
+          Schedule80C: d.Schedule80C || {},
+          TDSonSalaries: d.TDSonSalaries || { TDSonSalary: [] },
+          TDSonOthThanSals: d.TDSonOthThanSals || { TDSonOthThanSal: [] },
+          ScheduleTCS: d.ScheduleTCS || { TCS: [] },
+          TaxPayments: d.TaxPayments || { TaxPayment: [] },
+          LTCG112A: d.LTCG112A || { TotSaleCnsdrn: 0, TotCstAcqisn: 0, LongCap112A: 0 },
+          Verification: d.Verification || {},
+          TaxReturnPreparer: { RepresentativeAsseseeNameAdd: "CA Atik Bhayani | M.No. 609911" },
+          BankAccountDtls: d.BankAccountDtls || { AddtnlBankDetails: [] }
+        }
+      }
+    };
+  } else if (rec.itr_type === 'ITR4') {
+    return {
+      ITR: {
+        ITR4: {
+          CreationInfo: creationInfo,
+          Form_ITR4: { FormName: "ITR-4", Description: "For Individuals, HUFs and Firms (other than LLP) being a Resident having Total Income upto Rs.50 lakh", AssessmentYear: "2026", SchemaVer: "Ver1.0", FormVer: "Ver1.0" },
+          PersonalInfo: d.PersonalInfo || {},
+          FilingStatus: d.FilingStatus || {},
+          IncomeDeductions: d.IncomeDeductions || {},
+          TaxComputation: d.TaxComputation || {},
+          TaxPaid: d.TaxPaid || {},
+          Refund: d.Refund || {},
+          ScheduleBP: d.ScheduleBP || {},
+          Schedule80D: d.Schedule80D || {},
+          Schedule80G: d.Schedule80G || {},
+          Schedule80C: d.Schedule80C || {},
+          TDSonSalaries: d.TDSonSalaries || { TDSonSalary: [] },
+          TDSonOthThanSals: d.TDSonOthThanSals || { TDSonOthThanSal: [] },
+          ScheduleIT: d.ScheduleIT || { TaxPayment: [] },
+          ScheduleTCS: d.ScheduleTCS || { TCS: [] },
+          ScheduleTDS3Dtls: d.ScheduleTDS3Dtls || { TDS3Details: [] },
+          LTCG112A: d.LTCG112A || { TotSaleCnsdrn: 0, TotCstAcqisn: 0, LongCap112A: 0 },
+          Verification: d.Verification || {},
+          TaxReturnPreparer: { RepresentativeAsseseeNameAdd: "CA Atik Bhayani | M.No. 609911" }
+        }
+      }
+    };
+  } else if (rec.itr_type === 'ITR2') {
+    return {
+      ITR: {
+        ITR2: {
+          CreationInfo: creationInfo,
+          Form_ITR2: { FormName: "ITR-2", Description: "For Individuals and HUFs not having income from profits and gains of business or profession", AssessmentYear: "2026", SchemaVer: "Ver1.0", FormVer: "Ver1.0" },
+          PartA_GEN1: { PersonalInfo: d.PersonalInfo || {}, FilingStatus: d.FilingStatus || {} },
+          ScheduleS: d.ScheduleS || {},
+          ScheduleHP: d.ScheduleHP || {},
+          ScheduleCGFor23: d.ScheduleCGFor23 || {},
+          ScheduleOS: d.ScheduleOS || {},
+          ScheduleVIA: d.ScheduleVIA || {},
+          'PartB-TI': d['PartB-TI'] || {},
+          PartB_TTI: d.PartB_TTI || {},
+          ScheduleTDS1: d.ScheduleTDS1 || { TDSonSalary: [] },
+          ScheduleTDS2: d.ScheduleTDS2 || { TDSOthThanSalaryDtls: [] },
+          ScheduleIT: d.ScheduleIT || { TaxPayment: [] },
+          ScheduleTCS: d.ScheduleTCS || { TCS: [] },
+          Verification: d.Verification || {},
+          TaxReturnPreparer: { RepresentativeAsseseeNameAdd: "CA Atik Bhayani | M.No. 609911" }
+        }
+      }
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showLoading(v) {
+  document.getElementById('loading').classList.toggle('active', v);
+}
+</script>
+</body>
+</html>
